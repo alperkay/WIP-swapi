@@ -12,6 +12,7 @@ class PeopleList extends Component {
       people: [],
       planets: [],
       species: [],
+      gender: ['male', 'female', 'n/a'],
       filteringParams: {
         planetFilter: 'All',
         speciesFilter: 'All',
@@ -30,6 +31,22 @@ class PeopleList extends Component {
   componentDidUpdate(prevProps, prevState) {
     const { people, planets, species } = this.props;
     const { filteringParams, filteringOrder } = this.state;
+    // if (this.state.people !== prevState.people) {
+    //   this.setState({
+    //     planets: this.state.people.map(
+    //       person =>
+    //         person.homeworld === undefined
+    //           ? 'undefined'
+    //           : planets.find(planet => planet.url === person.homeworld)
+    //     ),
+    //     species: this.state.people.map(person =>
+    //       species.find(s => s.url === person.species[0])
+    //     ),
+    //     gender: this.removeDuplicates(
+    //       this.state.people.map(person => person.gender)
+    //     )
+    //   });
+    // }
     if (people !== prevProps.people) {
       this.setState({ people: people });
     }
@@ -39,57 +56,71 @@ class PeopleList extends Component {
     if (species !== prevProps.species) {
       this.setState({ species: species });
     }
-    if (Object.values(filteringParams).find(value => value !== 'All')) {
-      if (
-        filteringParams.planetFilter !== prevState.filteringParams.planetFilter
-      ) {
-        if (filteringParams.planetFilter === 'All')
-          this.setState({
-            filteringOrder: filteringOrder.filter(param => param !== 'planet')
-          });
-        if (
-          !filteringOrder.includes('planet') &&
-          filteringParams.planetFilter !== 'All'
-        )
-          this.setState({ filteringOrder: [...filteringOrder, 'planet'] });
-      }
-      if (
-        filteringParams.speciesFilter !==
-        prevState.filteringParams.speciesFilter
-      ) {
-        if (filteringParams.speciesFilter === 'All')
-          this.setState({
-            filteringOrder: filteringOrder.filter(param => param !== 'species')
-          });
-        if (
-          !filteringOrder.includes('species') &&
-          filteringParams.speciesFilter !== 'All'
-        )
-          this.setState({ filteringOrder: [...filteringOrder, 'species'] });
-      }
-      if (
-        filteringParams.genderFilter !== prevState.filteringParams.genderFilter
-      ) {
-        if (filteringParams.genderFilter === 'All')
-          this.setState({
-            filteringOrder: filteringOrder.filter(param => param !== 'gender')
-          });
-        if (
-          !filteringOrder.includes('gender') &&
-          filteringParams.genderFilter !== 'All'
-        )
-          this.setState({ filteringOrder: [...filteringOrder, 'gender'] });
-      }
-    } else if (
-      Object.values(prevState.filteringParams).find(value => value !== 'All') &&
-      !Object.values(filteringParams).find(value => value !== 'All')
-    ) {
-      this.setState({ filteringOrder: [] });
-    }
+    // if (Object.values(filteringParams).find(value => value !== 'All')) {
+    //   if (
+    //     filteringParams.planetFilter !== prevState.filteringParams.planetFilter
+    //   ) {
+    //     if (filteringParams.planetFilter === 'All')
+    //       this.setState({
+    //         filteringOrder: filteringOrder.filter(
+    //           param => param !== 'planetFilter'
+    //         )
+    //       });
+    //     if (
+    //       !filteringOrder.includes('planetFilter') &&
+    //       filteringParams.planetFilter !== 'All'
+    //     )
+    //       this.setState({
+    //         filteringOrder: [...filteringOrder, 'planetFilter']
+    //       });
+    //   }
+    //   if (
+    //     filteringParams.speciesFilter !==
+    //     prevState.filteringParams.speciesFilter
+    //   ) {
+    //     if (filteringParams.speciesFilter === 'All')
+    //       this.setState({
+    //         filteringOrder: filteringOrder.filter(
+    //           param => param !== 'speciesFilter'
+    //         )
+    //       });
+    //     if (
+    //       !filteringOrder.includes('speciesFilter') &&
+    //       filteringParams.speciesFilter !== 'All'
+    //     )
+    //       this.setState({
+    //         filteringOrder: [...filteringOrder, 'speciesFilter']
+    //       });
+    //   }
+    //   if (
+    //     filteringParams.genderFilter !== prevState.filteringParams.genderFilter
+    //   ) {
+    //     if (filteringParams.genderFilter === 'All')
+    //       this.setState({
+    //         filteringOrder: filteringOrder.filter(
+    //           param => param !== 'genderFilter'
+    //         )
+    //       });
+    //     if (
+    //       !filteringOrder.includes('genderFilter') &&
+    //       filteringParams.genderFilter !== 'All'
+    //     )
+    //       this.setState({
+    //         filteringOrder: [...filteringOrder, 'genderFilter']
+    //       });
+    //   }
+    // } else if (
+    //   Object.values(prevState.filteringParams).find(value => value !== 'All') &&
+    //   !Object.values(filteringParams).find(value => value !== 'All')
+    // ) {
+    //   this.setState({ filteringOrder: [] });
+    // }
   }
 
   findPlanet = (person, planets) => {
-    const planet = planets.find(planet => planet.url === person.homeworld);
+    const planet = planets.find(
+      planet => (planet === undefined ? null : planet.url === person.homeworld)
+    );
     if (planet === undefined) {
       return 'Not found in db';
     }
@@ -97,7 +128,9 @@ class PeopleList extends Component {
   };
 
   findSpecies = (person, species) => {
-    const personsSpecies = species.find(spec => spec.url === person.species[0]);
+    const personsSpecies = species.find(
+      spec => (spec === undefined ? null : spec.url === person.species[0])
+    );
     if (personsSpecies === undefined) {
       return 'Not found in db';
     }
@@ -112,29 +145,56 @@ class PeopleList extends Component {
     return list.find(item => item.name === paramName);
   };
 
+  filterPeople = (p, value) => {
+    const { filteringOrder } = this.state;
+    const { people, planets, species } = this.props;
+    if (p === 'planetFilter') {
+      const filteredPlanet = this.filterParams(value, planets);
+      const filteredPeople = people.filter(
+        person => person.homeworld === filteredPlanet.url
+      );
+      return filteredPeople;
+    } else if (p === 'speciesFilter') {
+      const filteredspecies = this.filterParams(value, species);
+      const filteredPeople = people.filter(
+        person => person.species[0] === filteredspecies.url
+      );
+      return filteredPeople;
+    } else if (p === 'genderFilter') {
+      const filteredPeople = people.filter(person => person.gender === value);
+      return filteredPeople;
+    }
+  };
+
   filterList = (p, e) => {
-    const {
-      people,
-      planets,
-      species,
-      filteringParams,
-      filteringOrder
-    } = this.state;
-    const {
-      planetFilter,
-      speciesFilter,
-      genderFilter
-    } = this.state.filteringParams;
     this.setState({
-      filteringParams: { ...filteringParams, [p]: e.target.value }
+      people: this.filterPeople(p, e.target.value),
+      planets: this.filterPeople(p, e.target.value).map(person =>
+        this.props.planets.find(planet => planet.url === person.homeworld)
+      ),
+      species: this.filterPeople(p, e.target.value).map(person =>
+        this.props.species.find(s => s.url === person.species[0])
+      ),
+      gender: this.filterPeople(p, e.target.value).map(person => person.gender)
     });
   };
 
+  removeDuplicates = arr => {
+    return arr.filter(function(item, index) {
+      return arr.indexOf(item) >= index;
+    });
+  };
+
+  dropdownList = arr => {
+    this.removeDuplicates(arr.map(item => item.name));
+  };
+
   render() {
-    const { people, planets, species } = this.state;
-    const planetsArray = ['All'].concat(planets.map(planet => planet.name));
-    const speciesArray = ['All'].concat(species.map(s => s.name));
-    const genderArray = ['All', 'male', 'female', 'n/a'];
+    const { people, planets, species, gender } = this.state;
+    const speciesList = this.removeDuplicates(
+      species.map(s => (s === undefined ? null : s.name))
+    );
+    const genderList = this.removeDuplicates(gender);
     return (
       <div>
         <table>
@@ -144,27 +204,38 @@ class PeopleList extends Component {
               <th>
                 Home Planet{' '}
                 <select onChange={e => this.filterList('planetFilter', e)}>
-                  {planetsArray.map((p, key) => (
-                    <option key={key} value={p}>
-                      {p}
-                    </option>
-                  ))}
+                  <option value="All">All</option>
+                  {planets.length === 1 && planets[0] === {}
+                    ? null
+                    : planets.map(
+                        (p, key) =>
+                          p === undefined ? null : (
+                            <option key={key} value={p.name}>
+                              {p.name}
+                            </option>
+                          )
+                      )}
                 </select>
               </th>
               <th>
                 Species{' '}
                 <select onChange={e => this.filterList('speciesFilter', e)}>
-                  {speciesArray.map((s, key) => (
-                    <option key={key} value={s}>
-                      {s}
-                    </option>
-                  ))}
+                  <option value="All">All</option>
+                  {speciesList.map(
+                    (s, key) =>
+                      s === undefined ? null : (
+                        <option key={key} value={s}>
+                          {s}
+                        </option>
+                      )
+                  )}
                 </select>
               </th>
               <th>
                 Gender{' '}
                 <select onChange={e => this.filterList('genderFilter', e)}>
-                  {genderArray.map((gender, key) => (
+                  <option value="All">All</option>
+                  {genderList.map((gender, key) => (
                     <option key={key} value={gender}>
                       {gender}
                     </option>
