@@ -6,16 +6,20 @@ import { selectPerson } from '../actions/selectPersonAction';
 import { connect } from 'react-redux';
 
 class PeopleList extends Component {
-  state = {
-    people: [],
-    planets: [],
-    species: [],
-    filteringParams: {
-      planetFilter: 'all',
-      speciesFilter: 'all',
-      genderFilter: 'all'
-    }
-  };
+  constructor(props) {
+    super(props);
+    this.state = {
+      people: [],
+      planets: [],
+      species: [],
+      filteringParams: {
+        planetFilter: 'All',
+        speciesFilter: 'All',
+        genderFilter: 'All'
+      },
+      filteringOrder: []
+    };
+  }
 
   componentDidMount() {
     this.props.getPeople();
@@ -23,16 +27,64 @@ class PeopleList extends Component {
     this.props.getSpecies();
   }
 
-  componentDidUpdate(prevState) {
+  componentDidUpdate(prevProps, prevState) {
     const { people, planets, species } = this.props;
-    if (people !== prevState.people) {
+    const { filteringParams, filteringOrder } = this.state;
+    if (people !== prevProps.people) {
       this.setState({ people: people });
     }
-    if (planets !== prevState.planets) {
+    if (planets !== prevProps.planets) {
       this.setState({ planets: planets });
     }
-    if (species !== prevState.species) {
+    if (species !== prevProps.species) {
       this.setState({ species: species });
+    }
+    if (Object.values(filteringParams).find(value => value !== 'All')) {
+      if (
+        filteringParams.planetFilter !== prevState.filteringParams.planetFilter
+      ) {
+        if (filteringParams.planetFilter === 'All')
+          this.setState({
+            filteringOrder: filteringOrder.filter(param => param !== 'planet')
+          });
+        if (
+          !filteringOrder.includes('planet') &&
+          filteringParams.planetFilter !== 'All'
+        )
+          this.setState({ filteringOrder: [...filteringOrder, 'planet'] });
+      }
+      if (
+        filteringParams.speciesFilter !==
+        prevState.filteringParams.speciesFilter
+      ) {
+        if (filteringParams.speciesFilter === 'All')
+          this.setState({
+            filteringOrder: filteringOrder.filter(param => param !== 'species')
+          });
+        if (
+          !filteringOrder.includes('species') &&
+          filteringParams.speciesFilter !== 'All'
+        )
+          this.setState({ filteringOrder: [...filteringOrder, 'species'] });
+      }
+      if (
+        filteringParams.genderFilter !== prevState.filteringParams.genderFilter
+      ) {
+        if (filteringParams.genderFilter === 'All')
+          this.setState({
+            filteringOrder: filteringOrder.filter(param => param !== 'gender')
+          });
+        if (
+          !filteringOrder.includes('gender') &&
+          filteringParams.genderFilter !== 'All'
+        )
+          this.setState({ filteringOrder: [...filteringOrder, 'gender'] });
+      }
+    } else if (
+      Object.values(prevState.filteringParams).find(value => value !== 'All') &&
+      !Object.values(filteringParams).find(value => value !== 'All')
+    ) {
+      this.setState({ filteringOrder: [] });
     }
   }
 
@@ -56,104 +108,33 @@ class PeopleList extends Component {
     this.props.selectPerson(person);
   };
 
-  filterList = (p, e) => {
-    const { planet, spec, gender } = this.state.filteringParams;
-    const { people, planets, species } = this.state;
-    let filteredPeople = [];
-    let filteredPlanet = {};
-    switch (p) {
-      case 'planets':
-        this.setState({
-          ...this.state,
-          filteringParams: {
-            ...this.state.filteringParams,
-            planetFilter: e.target.value
-          }
-        });
-        if (e.target.value === 'all' && spec === 'all' && gender === 'all') {
-          this.setState({ people: people });
-        } else {
-          filteredPlanet = planets.find(
-            planet => planet.name === e.target.value
-          );
-          filteredPeople = people.filter(
-            person => person.homeworld === filteredPlanet.url
-          );
-        }
-        break;
-      case 'species':
-        this.setState({
-          ...this.state,
-          filteringParams: {
-            ...this.state.filteringParams,
-            speciesFilter: e.target.value
-          }
-        });
-        break;
-      case 'gender':
-        this.setState({
-          ...this.state,
-          filteringParams: {
-            ...this.state.filteringParams,
-            genderFilter: e.target.value
-          }
-        });
-        filteredPeople = people.filter(
-          person => person.gender === e.target.value
-        );
-        break;
-      default:
-        return;
-    }
+  filterParams = (paramName, list) => {
+    return list.find(item => item.name === paramName);
+  };
 
+  filterList = (p, e) => {
+    const {
+      people,
+      planets,
+      species,
+      filteringParams,
+      filteringOrder
+    } = this.state;
+    const {
+      planetFilter,
+      speciesFilter,
+      genderFilter
+    } = this.state.filteringParams;
     this.setState({
-      people: filteredPeople
+      filteringParams: { ...filteringParams, [p]: e.target.value }
     });
   };
 
-  // planetFilter = e => {
-  //   this.setState({ filteringParams: { planet: e.target.value } });
-  //   if (e.target.value === 'all') {
-  //     this.setState({ people: this.props.people });
-  //     return;
-  //   }
-  //   const { planets } = this.state;
-  //   const { people } = this.props;
-  //   const filteredPlanet = planets.find(
-  //     planet => planet.name === e.target.value
-  //   );
-  //   const filteredPeople = people.filter(
-  //     person => person.homeworld === filteredPlanet.url
-  //   );
-  //   this.setState({ people: filteredPeople });
-  // };
-  // speciesFilter = e => {
-  //   if (e.target.value === 'all') {
-  //     return this.setState({ people: this.props.people });
-  //   }
-  //   const { species } = this.state;
-  //   const { people } = this.props;
-  //   const filteredSpecies = species.find(s => s.name === e.target.value);
-  //   const filteredPeople = people.filter(
-  //     person => person.species[0] === filteredSpecies.url
-  //   );
-  //   this.setState({ people: filteredPeople });
-  // };
-  // genderFilter = e => {
-  //   if (e.target.value === 'all') {
-  //     return this.setState({ people: this.props.people });
-  //   }
-
-  //   const { people } = this.props;
-
-  //   const filteredPeople = people.filter(
-  //     person => person.gender === e.target.value
-  //   );
-  //   this.setState({ people: filteredPeople });
-  // };
-
   render() {
     const { people, planets, species } = this.state;
+    const planetsArray = ['All'].concat(planets.map(planet => planet.name));
+    const speciesArray = ['All'].concat(species.map(s => s.name));
+    const genderArray = ['All', 'male', 'female', 'n/a'];
     return (
       <div>
         <table>
@@ -162,33 +143,32 @@ class PeopleList extends Component {
               <th>Character</th>
               <th>
                 Home Planet{' '}
-                <select onChange={e => this.filterList('planets', e)}>
-                  <option value="all">all</option>
-                  {planets.map((p, key) => (
-                    <option key={key} value={p.name}>
-                      {p.name}
+                <select onChange={e => this.filterList('planetFilter', e)}>
+                  {planetsArray.map((p, key) => (
+                    <option key={key} value={p}>
+                      {p}
                     </option>
                   ))}
                 </select>
               </th>
               <th>
                 Species{' '}
-                <select onChange={e => this.filterList('species', e)}>
-                  <option value="all">all</option>
-                  {species.map((s, key) => (
-                    <option key={key} value={s.name}>
-                      {s.name}
+                <select onChange={e => this.filterList('speciesFilter', e)}>
+                  {speciesArray.map((s, key) => (
+                    <option key={key} value={s}>
+                      {s}
                     </option>
                   ))}
                 </select>
               </th>
               <th>
                 Gender{' '}
-                <select onChange={e => this.filterList('gender', e)}>
-                  <option value="all">all</option>
-                  <option value="male">male</option>
-                  <option value="female">female</option>
-                  <option value="n/a">n/a</option>
+                <select onChange={e => this.filterList('genderFilter', e)}>
+                  {genderArray.map((gender, key) => (
+                    <option key={key} value={gender}>
+                      {gender}
+                    </option>
+                  ))}
                 </select>
               </th>
             </tr>
