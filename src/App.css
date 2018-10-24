@@ -1,13 +1,13 @@
-table {
+.people-list-table {
   border-collapse: collapse;
-  width: 100%;
+  table-layout: fixed;
   float: left;
-  width: 70%;
+  width: 60%;
   font-size: 14px;
 }
 
-th,
-td {
+.people-list-table th,
+.people-list-table td {
   padding: 8px;
   text-align: left;
   border-bottom: 1px solid #ddd;
@@ -18,7 +18,35 @@ td {
   cursor: pointer;
 }
 
-.selected-person {
+.card {
   float: left;
   margin-left: 30px;
+  margin-top: 45px;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+  transition: 0.3s;
+  width: 400px;
+  height: 350px;
+  border-radius: 5px;
+}
+
+.card:hover {
+  box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
+}
+
+.container {
+  padding: 2px 16px;
+}
+
+.card-table {
+  margin-top: 15px;
+  border-collapse: collapse;
+  table-layout: fixed;
+  float: left;
+  font-size: 14px;
+}
+
+.card-table th,
+.card-table td {
+  text-align: left;
+  padding: 8px;
 }
