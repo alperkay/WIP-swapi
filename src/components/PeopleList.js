@@ -12,7 +12,7 @@ class PeopleList extends Component {
       people: [],
       planets: [],
       species: [],
-      gender: ['male', 'female', 'n/a']
+      gender: ['All', 'male', 'female', 'n/a']
     };
   }
 
@@ -40,7 +40,7 @@ class PeopleList extends Component {
       planet => (planet === undefined ? null : planet.url === person.homeworld)
     );
     if (planet === undefined) {
-      return 'Not found in db';
+      return 'n/a';
     }
     return planet.name;
   };
@@ -50,7 +50,7 @@ class PeopleList extends Component {
       spec => (spec === undefined ? null : spec.url === person.species[0])
     );
     if (personsSpecies === undefined) {
-      return 'Not found in db';
+      return 'n/a';
     }
     return personsSpecies.name;
   };
@@ -59,12 +59,14 @@ class PeopleList extends Component {
     this.props.selectPerson(person);
   };
 
+  //for filtering the planets and species
   filterParams = (paramName, list) => {
     let arr = [];
     arr = arr.concat(list.find(item => item.name === paramName));
     return arr.map(param => param.url);
   };
 
+  //filtering people based on what's selected on the dropdowns
   filterPeople = (p, value) => {
     const { people, planets, species } = this.props;
     if (value === 'All') return people;
@@ -83,6 +85,7 @@ class PeopleList extends Component {
     }
   };
 
+  //setting the component state based on selection
   filterList = (p, e) => {
     this.setState({
       people: this.filterPeople(p, e.target.value)
@@ -91,7 +94,6 @@ class PeopleList extends Component {
 
   render() {
     const { people, planets, species, gender } = this.state;
-    const speciesList = species.map(s => (s === undefined ? null : s.name));
     return (
       <div>
         <table className="people-list-table">
@@ -99,39 +101,30 @@ class PeopleList extends Component {
             <tr>
               <th>Character</th>
               <th>
-                Home Planet{' '}
+                Home Planet
                 <select onChange={e => this.filterList('planetFilter', e)}>
                   <option value="All">All</option>
-                  {planets.length === 1 && planets[0] === {}
-                    ? null
-                    : planets.map(
-                        (p, key) =>
-                          p === undefined ? null : (
-                            <option key={key} value={p.name}>
-                              {p.name}
-                            </option>
-                          )
-                      )}
+                  {planets.map((p, key) => (
+                    <option key={key} value={p.name}>
+                      {p.name}
+                    </option>
+                  ))}
                 </select>
               </th>
               <th>
-                Species{' '}
+                Species
                 <select onChange={e => this.filterList('speciesFilter', e)}>
                   <option value="All">All</option>
-                  {speciesList.map(
-                    (s, key) =>
-                      s === undefined ? null : (
-                        <option key={key} value={s}>
-                          {s}
-                        </option>
-                      )
-                  )}
+                  {species.map((s, key) => (
+                    <option key={key} value={s.name}>
+                      {s.name}
+                    </option>
+                  ))}
                 </select>
               </th>
               <th>
-                Gender{' '}
+                Gender
                 <select onChange={e => this.filterList('genderFilter', e)}>
-                  <option value="All">All</option>
                   {gender.map((gender, key) => (
                     <option key={key} value={gender}>
                       {gender}
@@ -148,8 +141,8 @@ class PeopleList extends Component {
                   onClick={() => this.personClicked(person)}
                 >
                   <td>{person.name}</td>
-                  <td>{planets.length && this.findPlanet(person, planets)}</td>
-                  <td>{species.length && this.findSpecies(person, species)}</td>
+                  <td>{this.findPlanet(person, planets)}</td>
+                  <td>{this.findSpecies(person, species)}</td>
                   <td>{person.gender}</td>
                 </tr>
               ))}

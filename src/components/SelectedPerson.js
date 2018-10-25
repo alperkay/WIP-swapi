@@ -44,25 +44,37 @@ class SelectedPerson extends Component {
                 <th>
                   <b>Homeworld:</b>
                 </th>
-                <td>{planet && planet.name}</td>
+                <td>
+                  {person.homeworld &&
+                    (planet === undefined ? 'n/a' : planet.name)}
+                </td>
               </tr>
               <tr>
                 <th>
                   <b>Population:</b>
                 </th>
-                <td>{planet && planet.population}</td>
+                <td>
+                  {person.homeworld &&
+                    (planet === undefined ? 'n/a' : planet.population)}
+                </td>
               </tr>
               <tr>
                 <th>
                   <b>Climate:</b>
                 </th>
-                <td>{planet && planet.climate}</td>
+                <td>
+                  {person.homeworld &&
+                    (planet === undefined ? 'n/a' : planet.climate)}
+                </td>
               </tr>
               <tr>
                 <th>
                   <b>Terrain:</b>
                 </th>
-                <td>{planet && planet.terrain}</td>
+                <td>
+                  {person.homeworld &&
+                    (planet === undefined ? 'n/a' : planet.terrain)}
+                </td>
               </tr>
             </tbody>
           </table>
